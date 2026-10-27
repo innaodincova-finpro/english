@@ -241,9 +241,10 @@ nav button.on .ic{color:var(--ochre)}
   <h1>English</h1><span class="where">· 100 первых фраз</span>
   <i class="saved" title="Сохранено"></i>
 </header>
+<div class="note hidden" id="soundMsg" style="max-width:568px;margin:12px auto 0;background:var(--bad-soft);color:var(--bad)">Звук недоступен в этом окне. Откройте приложение в Safari: «Поделиться» → «Открыть в Safari».</div>
 <main id="view"></main>
 <div class="card boot" id="boot"><b>Приложение не запустилось в этом окне.</b><p class="muted">Откройте ссылку в браузере Safari: нажмите и подержите ссылку, выберите «Открыть в Safari».</p></div>
-<div class="note hidden" id="soundMsg" style="position:fixed;left:12px;right:12px;bottom:calc(var(--bot) + 8px);z-index:60;background:var(--bad-soft);color:var(--bad)">Звук недоступен в этом окне. Откройте приложение в Safari.</div>
+
 <nav id="nav">
   <button data-v="day"><span class="ic">☀</span>Днём</button>
   <button data-v="eve"><span class="ic">☾</span>Вечером</button>
@@ -435,7 +436,7 @@ function rDay(){
     let h=`<h2 class="screen-title">Днём</h2><p class="screen-sub">Молча, 15 минут</p>${stats()}
     <div class="progress"><span class="lbl">Шаг 1 из 2 · новые фразы</span><div class="dots"><i class="now"></i><i></i></div></div>
     <details class="hint"><summary>Как выполнять</summary><div class="in">Прочитайте новые фразы с переводом. Нажмите на фразу, чтобы услышать её. Затем перейдите к повтору.</div></details>
-    <div class="wl">${d.new.map(id=>row(id)).join("")}</div>
+    <div class="wl">${d.new.filter(id=>S.c[id]&&S.c[id].rev!==today()).map(id=>row(id)).join("")}</div>
     <div style="margin-top:14px"><button class="btn" id="goRev">Прочитала — к повтору</button></div>`;
     V.innerHTML=h;
     document.getElementById("goRev").onclick=()=>{d.read=true;save();startReview()};
@@ -448,8 +449,11 @@ function card(){
   if(!queue.length){
     V.innerHTML=`<h2 class="screen-title">Днём</h2><p class="screen-sub">Молча, 15 минут</p>${stats()}
     <div class="card done-card"><div class="big-ok">✓</div><div class="q">На сегодня карточки пройдены</div><p class="muted">В 19:30 откройте вкладку «Вечером» и произнесите фразы вслух.</p></div>
-    <button class="btn" id="toEve">Перейти к вечерней части</button>`;
-    document.getElementById("toEve").onclick=()=>go("eve");return;
+    <button class="btn" id="toEve">Перейти к вечерней части</button>
+    ${P.some(p=>!S.c[p.id])?`<button class="btn light" id="more10" style="margin-top:10px">Взять ещё 10 новых фраз</button><p class="muted" style="margin:8px 4px">Если сегодняшние фразы вы уже знаете или есть время позаниматься больше.</p>`:""}`;
+    document.getElementById("toEve").onclick=()=>go("eve");
+    const m10=document.getElementById("more10");if(m10)m10.onclick=()=>{const d=todaysNew(),t=today();let k=0;for(const p of P){if(!S.c[p.id]){S.c[p.id]={box:0,due:t,rev:""};d.new.push(p.id);if(++k>=NEW_PER_DAY)break}}d.read=false;save();rDay();window.scrollTo(0,0)};
+    return;
   }
   const p=P[queue[0]],left=queue.length,done=Math.max(total,left)-left;
   shown=false;
